@@ -83,6 +83,7 @@ sub main {
     
     my ($lb_status, $lb_resp, $lb_data) = apireq('lastBuild', $timeout);
     my ($ls_status, $ls_resp, $ls_data) = apireq('lastStableBuild', $timeout);
+    my ($lf_status, $lf_resp, $lf_data) = apireq('lastFailedBuild', $timeout);
     my $ls_not_lb = 0;
     
     if ($ls_status || $lb_status) {
@@ -100,7 +101,8 @@ sub main {
                 response("WARNING", "'$jobname' has not run successfully for $dur_human. No runs since. " . $lb_data->{url})
             }
             
-            if ($ls_data->{number} != $lb_data->{number} && $alert_on_fail and $alert_on_lastx_fail <= 1) {
+            if ($ls_data->{number} != $lb_data->{number} && $alert_on_fail and $alert_on_lastx_fail <= 1 &&
+                (exists $lf_data->{number} &&  $lf_data->{number} > $ls_data->{number}) ) {
                 ($dur_sec, $dur_human) = calcdur(int($lb_data->{timestamp} / 1000));
                 response ( "WARNING", "'$jobname' failed $dur_human ago. " . $lb_data->{url} );
             } elsif ($alert_on_lastx_fail > 1 && $lb_data->{number}-$ls_data->{number} >=$alert_on_lastx_fail) { # we should check on how many failed builds happened only if difference from last success and last build is equal or more than threahold value
